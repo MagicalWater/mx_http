@@ -210,7 +210,15 @@ class HttpContentMixin {
         }
       }
     } else {
-      target[key] = value;
+      if (value is String) {
+        target[key] = value;
+      } else if (value is List<String>) {
+        target[key] = value;
+      } else if (value is List) {
+        target[key] = value.map((e) => e.toString()).toList();
+      } else {
+        target[key] = value.toString();
+      }
     }
   }
 
