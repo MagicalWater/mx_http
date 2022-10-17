@@ -1,4 +1,4 @@
-## 0.0.2+1
+## 0.0.2+2
 
 - Request add error stacktrace when throw error. 
 
