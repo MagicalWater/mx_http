@@ -305,7 +305,7 @@ class HttpUtil {
         );
 
         recordResponseCallback?.call(packageError.response!);
-        return Future.error(packageError);
+        return Future.error(packageError, stackTrace);
       },
       test: (error) {
         // 只捕捉 DioError, 其餘不捕捉
