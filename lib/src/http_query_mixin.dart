@@ -142,7 +142,7 @@ class HttpContentMixin {
     required dynamic value,
   }) {
     // 添加鍵值對應
-    _addPair(key, value: value, target: _keyValueBody);
+    _addPair(key, value: value, target: _keyValueBody, forceString: false);
   }
 
   /// 純粹的 key value pair
@@ -164,14 +164,14 @@ class HttpContentMixin {
   /// 若是添加陣列到字串的參數, 則原先的字串會變為陣列並且加入新陣列
   /// 若是添加字串到陣列的參數, 則原因的陣列會添加一個新元素
   void addQueryParam(String key, {required dynamic value}) {
-    _addPair(key, value: value, target: _queryParams);
+    _addPair(key, value: value, target: _queryParams, forceString: true);
   }
 
   /// 添加抬頭
   /// 若是添加陣列到字串的參數, 則原先的字串會變為陣列並且加入新陣列
   /// 若是添加字串到陣列的參數, 則原因的陣列會添加一個新元素
   void addHeader(String key, {required dynamic value}) {
-    _addPair(key, value: value, target: headers);
+    _addPair(key, value: value, target: headers, forceString: true);
   }
 
   void clear() {
@@ -188,6 +188,7 @@ class HttpContentMixin {
     String key, {
     required dynamic value,
     required Map<String, dynamic> target,
+    required bool forceString,
   }) {
     if (target.containsKey(key)) {
       var oriValue = target[key];
@@ -208,16 +209,47 @@ class HttpContentMixin {
           oriValue.add(value);
           target[key] = oriValue;
         }
+      } else if (value is List<MultipartFile>) {
+        if (oriValue is MultipartFile) {
+          //原先元素是個檔案, 更改為陣列並添加
+          target[key] = [oriValue] + value;
+        } else if (oriValue is List<MultipartFile>) {
+          //原先元素是個陣列, 直接添加
+          target[key] = oriValue + value;
+        }
+      } else if (value is MultipartFile) {
+        if (oriValue is MultipartFile) {
+          //原先元素是個檔案, 直接修改參數
+          target[key] = value;
+        } else if (oriValue is List<MultipartFile>) {
+          //原先元素是個陣列, 直接添加
+          oriValue.add(value);
+          target[key] = oriValue;
+        }
       }
     } else {
       if (value is String) {
         target[key] = value;
       } else if (value is List<String>) {
         target[key] = value;
-      } else if (value is List) {
-        target[key] = value.map((e) => e.toString()).toList();
+      } else if (value is MultipartFile) {
+        if (forceString) {
+          target[key] = value.toString();
+        } else {
+          target[key] = value;
+        }
+      } else if (value is List<MultipartFile>) {
+        if (forceString) {
+          target[key] = value.map((e) => e.toString()).toList();
+        } else {
+          target[key] = value;
+        }
       } else {
-        target[key] = value.toString();
+        if (forceString) {
+          target[key] = value.toString();
+        } else {
+          target[key] = value;
+        }
       }
     }
   }

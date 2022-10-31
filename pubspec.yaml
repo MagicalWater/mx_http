@@ -1,6 +1,6 @@
 name: mx_http
 description: http connection tool, and supporting automatic generation of request entity code.
-version: 0.0.2+2
+version: 0.0.3
 homepage: https://github.com/MagicalWater/mx_http
 
 environment:

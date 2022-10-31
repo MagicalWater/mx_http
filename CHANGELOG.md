@@ -1,3 +1,7 @@
+## 0.0.3
+
+- Fixed could not send file.
+
 ## 0.0.2+2
 
 - Request add error stacktrace when throw error. 
