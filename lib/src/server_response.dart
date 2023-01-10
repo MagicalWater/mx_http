@@ -19,6 +19,9 @@ class ServerResponse {
   /// 是否發生錯誤
   bool get haveError => error != null;
 
+  final DateTime startTime;
+  final DateTime endTime;
+
   ServerResponse({
     required this.response,
     required this.url,
@@ -26,6 +29,8 @@ class ServerResponse {
     required this.headers,
     required this.body,
     required this.method,
+    required this.startTime,
+    required this.endTime,
     this.error,
     this.saveInPath,
   });

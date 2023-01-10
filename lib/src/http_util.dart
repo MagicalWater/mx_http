@@ -139,6 +139,7 @@ class HttpUtil {
     if (printLog) {
       print("[GET請求]: $url, query: $queryParams");
     }
+    final startTime = DateTime.now();
     Future<Response<dynamic>> request = dio.get(
       url,
       queryParameters: queryParams,
@@ -150,6 +151,7 @@ class HttpUtil {
       queryParams: queryParams,
       headers: headers,
       method: HttpMethod.get,
+      startTime: startTime,
     );
   }
 
@@ -161,6 +163,7 @@ class HttpUtil {
     if (printLog) {
       print("[GET請求]: $uri");
     }
+    final startTime = DateTime.now();
     Future<Response<dynamic>> request = dio.getUri(
       uri,
       options: Options(
@@ -174,6 +177,7 @@ class HttpUtil {
       queryParams: uri.queryParametersAll,
       headers: headers,
       method: HttpMethod.get,
+      startTime: startTime,
     );
   }
 
@@ -187,6 +191,7 @@ class HttpUtil {
     if (printLog) {
       print("[POST請求]: $url, body: $bodyData");
     }
+    final startTime = DateTime.now();
     Future<Response<dynamic>> request = dio.post(
       url,
       data: bodyData,
@@ -200,6 +205,7 @@ class HttpUtil {
       headers: headers,
       bodyData: bodyData,
       method: HttpMethod.post,
+      startTime: startTime,
     );
   }
 
@@ -214,6 +220,7 @@ class HttpUtil {
       print("[PUT請求]: $url, body: $bodyData");
     }
 
+    final startTime = DateTime.now();
     Future<Response<dynamic>> request = dio.put(
       url,
       data: bodyData,
@@ -227,6 +234,7 @@ class HttpUtil {
       headers: headers,
       bodyData: bodyData,
       method: HttpMethod.put,
+      startTime: startTime,
     );
   }
 
@@ -240,6 +248,7 @@ class HttpUtil {
     if (printLog) {
       print("[DELETE請求]: $url, body: $bodyData");
     }
+    final startTime = DateTime.now();
     Future<Response<dynamic>> request = dio.delete(
       url,
       data: bodyData,
@@ -253,6 +262,7 @@ class HttpUtil {
       headers: headers,
       bodyData: bodyData,
       method: HttpMethod.delete,
+      startTime: startTime,
     );
   }
 
@@ -265,6 +275,7 @@ class HttpUtil {
     ContentType? contentType,
     ProgressCallback? onReceiveProgress,
   }) {
+    final startTime = DateTime.now();
     Future<Response<dynamic>> request = dio.download(
       url,
       savePath,
@@ -280,6 +291,7 @@ class HttpUtil {
       headers: headers,
       savePath: savePath,
       method: HttpMethod.download,
+      startTime: startTime,
     );
   }
 
@@ -292,6 +304,7 @@ class HttpUtil {
     Map<String, dynamic> queryParams = const {},
     Map<String, dynamic> headers = const {},
     dynamic bodyData,
+    required DateTime startTime,
   }) {
     var requestFuture = request.onError(
       (error, stackTrace) {
@@ -302,6 +315,8 @@ class HttpUtil {
           headers,
           bodyData,
           method,
+          startTime,
+          DateTime.now(),
         );
 
         recordResponseCallback?.call(packageError.response!);
@@ -320,6 +335,8 @@ class HttpUtil {
         body: bodyData,
         saveInPath: savePath,
         method: method,
+        startTime: startTime,
+        endTime: DateTime.now(),
       );
     });
 
@@ -440,6 +457,8 @@ class HttpUtil {
     Map<String, dynamic> headers,
     dynamic body,
     HttpMethod method,
+    DateTime startTime,
+    DateTime endTime,
   ) {
     if (printErrorLog) {
       print('====== 請求錯誤 ======');
@@ -462,6 +481,8 @@ class HttpUtil {
         body: body,
         method: method,
         error: error,
+        startTime: startTime,
+        endTime: endTime,
       ),
     );
   }

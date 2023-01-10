@@ -1,3 +1,7 @@
+## 0.0.4
+
+- Add parameter 'startTime' and 'endTime' to ServerResponse
+
 ## 0.0.3
 
 - Fixed could not send file.
