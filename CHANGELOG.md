@@ -1,3 +1,7 @@
+## 0.0.4+1
+
+- Remove unnecessary print
+
 ## 0.0.4
 
 - Add parameter 'startTime' and 'endTime' to ServerResponse

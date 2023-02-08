@@ -42,11 +42,11 @@ class HttpContentMixin {
         // 當 _keyValueBody 沒值, 而 _rawBody 有值時
         // 嘗試解析 _rawBody 為 json 並轉為鍵值對應
         if (_keyValueBody.isEmpty && _rawBody.isNotEmpty) {
-          print("body 的類型為 $bodyType, 但鍵值對應參數為空, 嘗試從 rawBody 轉換");
+          // print("body 的類型為 $bodyType, 但鍵值對應參數為空, 嘗試從 rawBody 轉換");
           try {
             return json.decode(_rawBody);
           } on FormatException catch (_) {
-            print("轉換失敗, 將回傳空 body");
+            print("HttpContentMixin: 轉換失敗, 將回傳空 body");
           }
         }
         return _keyValueBody;
@@ -55,7 +55,7 @@ class HttpContentMixin {
         // 將 _keyValueBody 轉換為 _rawBody
         // 轉換過程將會移除 MultipartFile
         if (_rawBody.isEmpty && _keyValueBody.isNotEmpty) {
-          print("body 的類型為 $bodyType, 但 rawBody 參數為空, 嘗試從 鍵值對應 轉換");
+          // print("body 的類型為 $bodyType, 但 rawBody 參數為空, 嘗試從 鍵值對應 轉換");
 
           // 先移除第二層是 FileInfo 的參數
           _keyValueBody = _keyValueBody.map((k, v) {
@@ -75,7 +75,7 @@ class HttpContentMixin {
           try {
             return json.encode(_keyValueBody);
           } on JsonUnsupportedObjectError catch (_) {
-            print("轉換失敗, 將回傳空 body");
+            print("HttpContentMixin: 轉換失敗, 將回傳空 body");
           }
         }
         return _rawBody;
