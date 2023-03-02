@@ -1,6 +1,7 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:built_collection/built_collection.dart';
 import 'package:code_builder/code_builder.dart' as code_builder;
+import 'package:dio/dio.dart';
 
 import '../annotation.dart';
 import '../element_parser.dart';
@@ -45,28 +46,28 @@ class ApiClassParser extends ApiParser {
     HttpContentBuilder contentBuilder = HttpContentBuilder();
 
     // 取得 method 的名稱
-    var methodName = element.name;
+    final methodName = element.name;
 
     // 首先取得 meta data
-    var methodAnnotation = getApiMethodAnnotation(element);
+    final methodAnnotation = getApiMethodAnnotation(element);
 
     // 取得 method 裡面必選的參數(擁有名稱的必選參數不在此處)
-    var requiredParam =
+    final requiredParam =
         element.parameters.where((e) => e.isRequiredPositional).toList();
 
     // 取得 method 裡面可選或者擁有名稱的參數
-    var optionalParam = element.parameters
+    final optionalParam = element.parameters
         .where((e) => e.isOptional || e.isRequiredNamed)
         .toList();
 
     // 取得以及設置初始化參數
     // 取得 meta data 使用的類型
-    var method = toApiMethod(methodAnnotation);
+    final method = toApiMethod(methodAnnotation);
     var path = methodAnnotation.peek('path')!.stringValue;
-    var scheme = methodAnnotation.peek('scheme')?.stringValue;
-    var host = methodAnnotation.peek('host')?.stringValue;
-    var port = methodAnnotation.peek('port')?.intValue;
-    var contentType = methodAnnotation
+    final scheme = methodAnnotation.peek('scheme')?.stringValue;
+    final host = methodAnnotation.peek('host')?.stringValue;
+    final port = methodAnnotation.peek('port')?.intValue;
+    final contentType = methodAnnotation
         .peek('contentType')
         ?.objectValue
         .getField('_value')
@@ -83,9 +84,9 @@ class ApiClassParser extends ApiParser {
 
     // 解析取得 bodyType
     HttpBodyType? bodyType;
-    var bodyTypePeek = methodAnnotation.peek('bodyType');
+    final bodyTypePeek = methodAnnotation.peek('bodyType');
     if (bodyTypePeek != null) {
-      var dartObj = bodyTypePeek.objectValue;
+      final dartObj = bodyTypePeek.objectValue;
       final name = dartObj.getField('_name')?.toStringValue();
       final formDataString = HttpBodyType.formData.toString().split('.').last;
       final formUrlencodedString =
@@ -110,10 +111,45 @@ class ApiClassParser extends ApiParser {
       contentBuilder.setBodyType(bodyType);
     }
 
+    // 解析取得ListFormat
+    ListFormat? formDataFormat;
+    final formDataFormatPeek = methodAnnotation.peek('formDataFormat');
+    if (formDataFormatPeek != null) {
+      final dartObj = formDataFormatPeek.objectValue;
+      final name = dartObj.getField('_name')?.toStringValue();
+      final csvString = ListFormat.csv.toString().split('.').last;
+      final ssvString =
+          ListFormat.ssv.toString().split('.').last;
+      final tsvString = ListFormat.tsv.toString().split('.').last;
+      final pipesString = ListFormat.pipes.toString().split('.').last;
+      final multiString = ListFormat.multi.toString().split('.').last;
+      final multiCompatibleString = ListFormat.multiCompatible.toString().split('.').last;
+      // enum 判斷的方式只能透過 getField.split('.') 進行判斷
+      if (name == csvString) {
+        formDataFormat = ListFormat.csv;
+      } else if (name == ssvString) {
+        formDataFormat = ListFormat.ssv;
+      } else if (name == tsvString) {
+        formDataFormat = ListFormat.tsv;
+      } else if (name == pipesString) {
+        formDataFormat = ListFormat.pipes;
+      } else if (name == multiString) {
+        formDataFormat = ListFormat.multi;
+      } else if (name == multiCompatibleString) {
+        formDataFormat = ListFormat.multiCompatible;
+      }
+
+      // 實際上可以設置的為enum
+      // 因此在經過上方的if else判斷後, formDataFormat 必定有值
+
+      // 將 formDataFormat 設置到 builder
+      contentBuilder.setFormDataFormat(formDataFormat);
+    }
+
     // 常數 header
-    Map<String, String> constantHeader = {};
+    final constantHeader = <String, String>{};
     // 常數 queryParam
-    Map<String, String> constantQueryParam = {};
+    final constantQueryParam = <String, String>{};
     // 常數 body
     dynamic constantBody;
 
@@ -126,8 +162,8 @@ class ApiClassParser extends ApiParser {
       }
     });
     (methodAnnotation.peek('queryParams')?.mapValue ?? {}).forEach((k, v) {
-      var keyString = k?.toStringValue();
-      var valueString = v?.toStringValue();
+      final keyString = k?.toStringValue();
+      final valueString = v?.toStringValue();
       if (keyString != null && valueString != null) {
         constantQueryParam[keyString] = valueString;
       }

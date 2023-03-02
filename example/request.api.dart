@@ -26,7 +26,8 @@ abstract class ExRequestApi extends RequestBuilderBase
         method: HttpMethod.post,
         port: 8881,
         contentType: ContentType.parse("application/x-www-form-urlencoded"));
-    content.bodyType = HttpBodyType.formUrlencoded;
+    content.bodyType = HttpBodyType.formData;
+    content.formDataFormat = ListFormat.multiCompatible;
     const _temp3 = "titleBodyValue";
     content.addBody(
       key: "titleBodyKey",

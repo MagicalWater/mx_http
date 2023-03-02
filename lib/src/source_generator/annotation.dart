@@ -1,3 +1,5 @@
+import 'package:dio/dio.dart';
+
 /// 宣告一個 abstract class 是個 api 請求的 interface
 class Api {
   const Api();
@@ -37,6 +39,7 @@ class Post {
   final Map<String, String>? queryParams;
   final dynamic body;
   final HttpBodyType? bodyType;
+  final ListFormat? formDataFormat;
   final HttpContentType? contentType;
   final String? host;
   final String? scheme;
@@ -48,6 +51,7 @@ class Post {
     this.queryParams,
     this.body,
     this.bodyType,
+    this.formDataFormat,
     this.host,
     this.scheme,
     this.contentType,
@@ -62,6 +66,7 @@ class Delete {
   final Map<String, String>? queryParams;
   final dynamic body;
   final HttpBodyType? bodyType;
+  final ListFormat? formDataFormat;
   final HttpContentType? contentType;
   final String? host;
   final String? scheme;
@@ -73,6 +78,7 @@ class Delete {
     this.queryParams,
     this.body,
     this.bodyType,
+    this.formDataFormat,
     this.host,
     this.scheme,
     this.contentType,
@@ -87,6 +93,7 @@ class Put {
   final Map<String, String>? queryParams;
   final dynamic body;
   final HttpBodyType? bodyType;
+  final ListFormat? formDataFormat;
   final HttpContentType? contentType;
   final String? host;
   final String? scheme;
@@ -98,6 +105,7 @@ class Put {
     this.queryParams,
     this.body,
     this.bodyType,
+    this.formDataFormat,
     this.host,
     this.scheme,
     this.contentType,
@@ -112,6 +120,7 @@ class Download {
   final Map<String, String>? queryParams;
   final dynamic body;
   final HttpBodyType? bodyType;
+  final ListFormat? formDataFormat;
   final HttpContentType? contentType;
   final String? host;
   final String? scheme;
@@ -123,6 +132,7 @@ class Download {
     this.queryParams,
     this.body,
     this.bodyType,
+    this.formDataFormat,
     this.host,
     this.scheme,
     this.contentType,

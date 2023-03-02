@@ -1,3 +1,5 @@
+import 'package:dio/dio.dart';
+
 import '../../annotation.dart';
 import '../../element_parser.dart';
 import 'body_builder.dart';
@@ -38,6 +40,10 @@ class HttpContentBuilder implements Builder {
   /// 設置 bodyType
   void setBodyType(HttpBodyType? type) {
     body.setBodyType(type);
+  }
+
+  void setFormDataFormat(ListFormat? format) {
+    body.setFormDataFormat(format);
   }
 
   /// 添加 body

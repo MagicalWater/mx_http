@@ -17,7 +17,7 @@ class HttpContentGenerator with HttpContentMixin {
   }
 
   HttpContent generate(
-    String path, {
+    String? path, {
     String? host,
     String? scheme,
     HttpMethod method = HttpMethod.get,
@@ -26,12 +26,6 @@ class HttpContentGenerator with HttpContentMixin {
   }) {
     var usedScheme = scheme ?? defaultScheme;
     var usedHost = host ?? defaultHost;
-    if (usedScheme == null) {
-      throw '錯誤: scheme 必須設定';
-    }
-    if (usedHost == null) {
-      throw '錯誤: host 必須設定';
-    }
     // print('這是: $defaultScheme');
     var content = HttpContent.comb(
       usedScheme,

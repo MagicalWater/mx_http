@@ -18,7 +18,8 @@ abstract class ExRequestInterface {
     body: {
       'titleBodyKey': 'titleBodyValue',
     },
-    bodyType: HttpBodyType.formUrlencoded,
+    bodyType: HttpBodyType.formData,
+    formDataFormat: ListFormat.multiCompatible,
     contentType: HttpContentType.formUrlencoded,
     // host: 'titleHost',
     // scheme: 'titleHttps',
@@ -43,8 +44,8 @@ abstract class ExRequestInterface {
 
 class ExRequest extends ExRequestApi {
   @override
-  String host() => 'www.google.com';
+  String? host() => '192.168.1.3';
 
   @override
-  String scheme() => 'https';
+  String? scheme() => null;
 }

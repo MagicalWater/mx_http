@@ -363,7 +363,11 @@ class HttpUtil {
           contentType: content.contentType,
         );
       case HttpMethod.post:
-        var bodyData = _convertBodyData(content.bodyData, content.bodyType);
+        var bodyData = _convertBodyData(
+          content.bodyData,
+          content.bodyType,
+          content.formDataFormat,
+        );
         return post(
           content.url,
           queryParams: content.queryParams,
@@ -372,7 +376,11 @@ class HttpUtil {
           contentType: content.contentType,
         );
       case HttpMethod.delete:
-        var bodyData = _convertBodyData(content.bodyData, content.bodyType);
+        var bodyData = _convertBodyData(
+          content.bodyData,
+          content.bodyType,
+          content.formDataFormat,
+        );
         return delete(
           content.url,
           queryParams: content.queryParams,
@@ -381,7 +389,11 @@ class HttpUtil {
           contentType: content.contentType,
         );
       case HttpMethod.put:
-        var bodyData = _convertBodyData(content.bodyData, content.bodyType);
+        var bodyData = _convertBodyData(
+          content.bodyData,
+          content.bodyType,
+          content.formDataFormat,
+        );
         return put(
           content.url,
           queryParams: content.queryParams,
@@ -390,7 +402,11 @@ class HttpUtil {
           contentType: content.contentType,
         );
       case HttpMethod.download:
-        var bodyData = _convertBodyData(content.bodyData, content.bodyType);
+        var bodyData = _convertBodyData(
+          content.bodyData,
+          content.bodyType,
+          content.formDataFormat,
+        );
         return download(
           content.url,
           savePath: content.saveInPath!,
@@ -413,30 +429,19 @@ class HttpUtil {
   }
 
   /// 將 HttpContent 的 body 做轉換
-  dynamic _convertBodyData(dynamic bodyData, HttpBodyType? bodyType) {
+  dynamic _convertBodyData(
+    dynamic bodyData,
+    HttpBodyType? bodyType,
+    ListFormat? formDataFormat,
+  ) {
     if (bodyType != null && bodyData != null) {
       switch (bodyType) {
         case HttpBodyType.formData:
-          // formData 可以帶 File, 所以要做對 dio 的轉換
-          // bodyData = (bodyData as Map<String, dynamic>).map((k, v) {
-          //   if (v is FileInfo) {
-          //     return MapEntry(k,
-          //         MultipartFile.fromFileSync(v.filepath, filename: v.filename));
-          //   } else if (v is List) {
-          //     var mapValue = v.map((e) {
-          //       if (e is FileInfo) {
-          //         return MultipartFile.fromFileSync(e.filepath,
-          //             filename: e.filename);
-          //       } else {
-          //         return e;
-          //       }
-          //     }).toList();
-          //     return MapEntry(k, mapValue);
-          //   } else {
-          //     return MapEntry(k, v);
-          //   }
-          // });
-          bodyData = FormData.fromMap(bodyData);
+          if (formDataFormat != null) {
+            bodyData = FormData.fromMap(bodyData, formDataFormat);
+          } else {
+            bodyData = FormData.fromMap(bodyData);
+          }
           break;
         case HttpBodyType.formUrlencoded:
           // 不用做任何轉換

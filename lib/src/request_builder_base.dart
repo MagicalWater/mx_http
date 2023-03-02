@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:dio/dio.dart';
+
 import 'source_generator/annotation.dart';
 
 import 'http_content_generator.dart';
@@ -13,10 +15,10 @@ abstract class RequestBuilderBase {
   }
 
   /// 預設 host
-  String host();
+  String? host();
 
   /// 預設 scheme
-  String scheme();
+  String? scheme();
 
   /// 預設 body
   /// 可帶入 純字串 或 key value pair
@@ -29,6 +31,9 @@ abstract class RequestBuilderBase {
 
   /// 預設 bodyType
   HttpBodyType? bodyType() => null;
+
+  /// 預設body type的 collectionFormat
+  ListFormat? formDataFormat() => null;
 
   /// 預設 qp
   Map<String, String>? queryParams() => null;
@@ -64,6 +69,11 @@ abstract class RequestBuilderBase {
     final bodyTypeValue = bodyType();
     if (bodyTypeValue != null) {
       generator.bodyType = bodyTypeValue;
+    }
+
+    final formDataFormatValue = formDataFormat();
+    if (formDataFormatValue != null) {
+      generator.formDataFormat = formDataFormatValue;
     }
 
     final portValue = port();

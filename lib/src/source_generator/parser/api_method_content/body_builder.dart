@@ -1,3 +1,5 @@
+import 'package:dio/dio.dart';
+
 import '../../annotation.dart';
 import '../../element_parser.dart';
 import 'param_content_builder.dart';
@@ -5,6 +7,7 @@ import 'param_content_builder.dart';
 /// Body 的構建類
 class BodyBuilder extends ParamContentBuilder<BodyContent> {
   HttpBodyType? bodyType;
+  ListFormat? formDataFormat;
 
   @override
   BodyContent getContent({
@@ -19,6 +22,10 @@ class BodyBuilder extends ParamContentBuilder<BodyContent> {
     bodyType = type;
   }
 
+  void setFormDataFormat(ListFormat? format) {
+    formDataFormat = format;
+  }
+
   @override
   String build() {
     String text = '';
@@ -26,6 +33,11 @@ class BodyBuilder extends ParamContentBuilder<BodyContent> {
     // 如果有 bodyType, 則需要設置
     if (bodyType != null) {
       text += "content.bodyType = ${bodyType.toString()};";
+    }
+
+    // 如果有formDataFormat, 需要設置
+    if (formDataFormat != null) {
+      text += "content.formDataFormat = ${formDataFormat.toString()};";
     }
 
     // 遍歷所有需要賦予變數值的常數

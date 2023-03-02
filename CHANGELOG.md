@@ -1,3 +1,9 @@
+## 0.0.5+1
+
+- HttpContent adds a new variable formDataFormat, which can set the data format when the bodyType is formData.
+
+- Scheme, host, path changed to nullable values. 
+
 ## 0.0.4+1
 
 - Remove unnecessary print

@@ -2,7 +2,7 @@ import 'package:mx_http/mx_http.dart';
 
 import 'request.dart';
 
-void main() async {
+Future<void> main() async {
   // 初始化http請求工具
   final httpUtil = HttpUtil();
 
@@ -10,7 +10,7 @@ void main() async {
   final request = ExRequest();
 
   // 發出http api請求, 並取得響應
-  final response = await request
+  await request
       .exApi(
         'apiPath',
         'hi',

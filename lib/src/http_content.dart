@@ -7,20 +7,21 @@ import 'server_response.dart';
 
 ///http的請求body, 對於 HttpUtils 的接口封裝
 class HttpContent with HttpContentMixin {
-  late String scheme;
-  late String host;
-  late String path;
+  late String? scheme;
+  late String? host;
+  late String? path;
   HttpMethod method;
 
   /// 此參數只在 Method 為 download 時有效, 下載目的
   String? saveInPath;
 
   Uri get uri => Uri(
-      scheme: scheme,
-      host: host,
-      path: path,
-      port: port,
-      queryParameters: queryParams);
+        scheme: scheme,
+        host: host,
+        path: path,
+        port: port,
+        queryParameters: queryParams,
+      );
 
   String get url => uri.toString();
 
@@ -53,9 +54,9 @@ class HttpContent with HttpContentMixin {
   }
 
   factory HttpContent({
-    required String scheme,
-    required String host,
-    required String path,
+    required String? scheme,
+    required String? host,
+    required String? path,
     HttpMethod method = HttpMethod.get,
     String? saveInPath,
     int? port,

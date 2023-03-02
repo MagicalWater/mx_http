@@ -24,6 +24,9 @@ class HttpContentMixin {
   /// body 的類型, 預設 [HttpBodyType.formUrlencoded]
   HttpBodyType bodyType = HttpBodyType.formUrlencoded;
 
+  /// 當[bodyType]為[HttpBodyType.formData]時, data的內容格式
+  ListFormat? formDataFormat;
+
   /// contentType, null時根據 body 帶入對應contentType
   ContentType? get contentType {
     if (_contentType != null) {
