@@ -1,3 +1,7 @@
+## 0.0.6+1
+
+- Update Dio version to 5.3.1
+
 ## 0.0.5+1
 
 - HttpContent adds a new variable formDataFormat, which can set the data format when the bodyType is formData.

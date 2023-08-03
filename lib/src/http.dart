@@ -1,5 +1,5 @@
 export 'package:dio/dio.dart'
-    show Interceptor, RequestOptions, Response, DioError, MultipartFile, ListFormat;
+    show Interceptor, RequestOptions, Response, DioException, MultipartFile, ListFormat;
 
 export 'http_util.dart';
 export 'http_content.dart';

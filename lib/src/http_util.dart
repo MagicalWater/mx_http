@@ -1,8 +1,8 @@
 import 'dart:io';
 
 import 'package:cookie_jar/cookie_jar.dart';
-import 'package:dio/adapter.dart';
 import 'package:dio/dio.dart';
+import 'package:dio/io.dart';
 import 'package:dio_cookie_manager/dio_cookie_manager.dart';
 
 import 'http_content.dart';
@@ -47,7 +47,7 @@ class HttpUtil {
   Future<void> Function(ServerResponse response)? recordResponseCallback;
 
   /// 連線 timeout 時間
-  int get connectTimeout => dio.options.connectTimeout;
+  Duration? get connectTimeout => dio.options.connectTimeout;
 
   /// 是否打印請求資料
   bool printLog = true;
@@ -56,7 +56,7 @@ class HttpUtil {
   bool printErrorLog = true;
 
   /// 設置 timeout
-  void setTimeout(int value) => dio.options.connectTimeout = value;
+  void setTimeout(Duration value) => dio.options.connectTimeout = value;
 
   /// 設定代理
   void setProxy(String ip, int port) {
@@ -89,22 +89,19 @@ class HttpUtil {
         _proxyPort == null &&
         _badCertificateCallback == null) {
       // 不需要設置代理, 也不需要設置證書信任
-      (dio.httpClientAdapter as DefaultHttpClientAdapter).onHttpClientCreate =
-          null;
+      dio.httpClientAdapter = IOHttpClientAdapter();
     } else {
       // 需要設置代理或者證書信任
-      (dio.httpClientAdapter as DefaultHttpClientAdapter).onHttpClientCreate =
-          (client) {
-        if (_proxyIp != null && _proxyIp!.isNotEmpty && _proxyPort != null) {
+      dio.httpClientAdapter = IOHttpClientAdapter(
+        createHttpClient: () {
+          final client = HttpClient();
           client.findProxy = (uri) {
-            return "PROXY ${_proxyIp!.trim()}:$_proxyPort";
+            return 'PROXY ${_proxyIp!.trim()}:$_proxyPort';
           };
-        }
-        if (_badCertificateCallback != null) {
           client.badCertificateCallback = _badCertificateCallback;
-        }
-        return null;
-      };
+          return client;
+        },
+      );
     }
   }
 
@@ -309,7 +306,7 @@ class HttpUtil {
     var requestFuture = request.onError(
       (error, stackTrace) {
         var packageError = _handleError(
-          error as DioError,
+          error as DioException,
           url,
           queryParams,
           headers,
@@ -324,7 +321,7 @@ class HttpUtil {
       },
       test: (error) {
         // 只捕捉 DioError, 其餘不捕捉
-        return error is DioError;
+        return error is DioException;
       },
     ).then((value) {
       return ServerResponse(
@@ -456,7 +453,7 @@ class HttpUtil {
 
   /// 處理請求發出後得到的 error
   HttpError _handleError(
-    DioError error,
+    DioException error,
     String url,
     Map<String, dynamic> queryParams,
     Map<String, dynamic> headers,
@@ -493,20 +490,24 @@ class HttpUtil {
   }
 
   /// 將 Dio 的 Error 轉換為自訂的 Error
-  HttpErrorType _convertToHttpErrorType(DioErrorType type) {
+  HttpErrorType _convertToHttpErrorType(DioExceptionType type) {
     switch (type) {
-      case DioErrorType.connectTimeout:
-        return HttpErrorType.connectTimeout;
-      case DioErrorType.sendTimeout:
+      case DioExceptionType.connectionTimeout:
+        return HttpErrorType.connectionTimeout;
+      case DioExceptionType.sendTimeout:
         return HttpErrorType.sendTimeout;
-      case DioErrorType.receiveTimeout:
+      case DioExceptionType.receiveTimeout:
         return HttpErrorType.receiveTimeout;
-      case DioErrorType.response:
-        return HttpErrorType.response;
-      case DioErrorType.cancel:
+      case DioExceptionType.badCertificate:
+        return HttpErrorType.badCertificate;
+      case DioExceptionType.badResponse:
+        return HttpErrorType.badResponse;
+      case DioExceptionType.cancel:
         return HttpErrorType.cancel;
-      default:
-        return HttpErrorType.other;
+      case DioExceptionType.connectionError:
+        return HttpErrorType.connectionError;
+      case DioExceptionType.unknown:
+        return HttpErrorType.unknown;
     }
   }
 }
@@ -516,7 +517,7 @@ class HttpError extends Error implements Exception {
     required this.request,
     required this.response,
     // required this.message,
-    this.type = HttpErrorType.other,
+    this.type = HttpErrorType.unknown,
     required this.error,
     this.stackTrace,
   });
@@ -549,8 +550,8 @@ class HttpError extends Error implements Exception {
 
 /// 直接從 dio 轉為自己的錯誤訊息
 enum HttpErrorType {
-  /// It occurs when url is opened timeout.
-  connectTimeout,
+  /// Caused by a connection timeout.
+  connectionTimeout,
 
   /// It occurs when url is sent timeout.
   sendTimeout,
@@ -558,13 +559,20 @@ enum HttpErrorType {
   ///It occurs when receiving timeout.
   receiveTimeout,
 
-  /// When the server response, but with a incorrect status, such as 404, 503...
-  response,
+  /// Caused by an incorrect certificate as configured by [ValidateCertificate].
+  badCertificate,
+
+  /// The [DioException] was caused by an incorrect status code as configured by
+  /// [ValidateStatus].
+  badResponse,
 
   /// When the request is cancelled, dio will throw a error with this type.
   cancel,
 
-  /// Default error type, Some other Error. In this case, you can
-  /// use the DioError.error if it is not null.
-  other,
+  /// Caused for example by a `xhr.onError` or SocketExceptions.
+  connectionError,
+
+  /// Default error type, Some other [Error]. In this case, you can use the
+  /// [DioException.error] if it is not null.
+  unknown,
 }

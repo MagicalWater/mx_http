@@ -14,7 +14,7 @@ class ServerResponse {
   final Response? response;
   HttpMethod method;
 
-  DioError? error;
+  DioException? error;
 
   /// 是否發生錯誤
   bool get haveError => error != null;

@@ -47,5 +47,5 @@ class ExRequest extends ExRequestApi {
   String? host() => '192.168.1.3';
 
   @override
-  String? scheme() => null;
+  String? scheme() => 'http';
 }
