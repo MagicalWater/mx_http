@@ -1,3 +1,6 @@
+## 0.0.7+1
+- In the Web context, cease using CookieManager.
+
 ## 0.0.6+1
 
 - Update Dio version to 5.3.1

@@ -14,6 +14,10 @@ export 'package:dio/dio.dart';
 
 typedef ProgressCallback = void Function(int count, int total);
 
+const _kIsWeb = bool.hasEnvironment('dart.library.js_util')
+    ? bool.fromEnvironment('dart.library.js_util')
+    : identical(0, 0.0);
+
 class HttpUtil {
   HttpUtil() {
     //默認返回純文字數據, 否則dio抓到json之後會把雙引號去掉變成假json
@@ -21,9 +25,11 @@ class HttpUtil {
 
     // recordResponseCallback = (response) => _writeResponseToFile(response);
 
-    CookieJar cookieJar = CookieJar();
-    _cookieManager = CookieManager(cookieJar);
-    dio.interceptors.add(_cookieManager);
+    if (!_kIsWeb) {
+      CookieJar cookieJar = CookieJar();
+      _cookieManager = CookieManager(cookieJar);
+      dio.interceptors.add(_cookieManager!);
+    }
   }
 
   /// 設置代理
@@ -38,10 +44,10 @@ class HttpUtil {
   final Dio dio = Dio();
 
   /// cookie 管理器
-  late CookieManager _cookieManager;
+  CookieManager? _cookieManager;
 
   /// cookie 管理器
-  CookieManager get cookieManager => _cookieManager;
+  CookieManager? get cookieManager => _cookieManager;
 
   /// 取得 response 後, 將呼叫此方法將變數存入本地
   Future<void> Function(ServerResponse response)? recordResponseCallback;
