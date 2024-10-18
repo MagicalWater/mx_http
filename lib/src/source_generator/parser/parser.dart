@@ -4,7 +4,7 @@ import 'package:meta/meta.dart';
 
 import 'code_generator.dart';
 
-abstract class ApiParser {
+abstract class RequestParser {
   /// 介面名稱
   String? interfaceName;
 
@@ -12,7 +12,7 @@ abstract class ApiParser {
   String? apiClassName;
 
   /// 解析完成的 code 生成相關會儲存在此
-  CodeGenerator codeGenerator = CodeGenerator();
+  final codeGenerator = CodeGenerator();
 
   void parse(Element element) {
     if (element.kind == ElementKind.CLASS) {
@@ -22,9 +22,9 @@ abstract class ApiParser {
       apiClassName = getMainNameByInterface(interfaceName!);
       apiClassName = '${apiClassName!}${getClassSuffixName()}';
 
-      var apiMethod = generateApiMethods(classElement);
+      var apiMethod = generateMethods(classElement);
 
-      var apiClass = generateApiClass(
+      var apiClass = generateClass(
         interfaceName: interfaceName!,
         className: apiClassName!,
         methods: apiMethod,
@@ -43,7 +43,9 @@ abstract class ApiParser {
   String getMainNameByInterface(String interfaceName) {
     if (interfaceName.endsWith('Interface')) {
       return interfaceName.substring(
-          0, interfaceName.length - 'Interface'.length);
+        0,
+        interfaceName.length - 'Interface'.length,
+      );
     } else {
       return interfaceName;
     }
@@ -53,16 +55,14 @@ abstract class ApiParser {
   String getClassSuffixName();
 
   /// 將解析完的 Library 轉為 格式化字串
-  String getFormatText() {
-    return codeGenerator.getFormatText()!;
-  }
+  String getFormatText() => codeGenerator.getFormatText()!;
 
-  /// 產出實作的 api methods
+  /// 產出實作的methods
   @protected
-  List<code_builder.Method> generateApiMethods(ClassElement element);
+  List<code_builder.Method> generateMethods(ClassElement element);
 
   @protected
-  code_builder.Class generateApiClass({
+  code_builder.Class generateClass({
     required String interfaceName,
     required String className,
     required List<code_builder.Method> methods,

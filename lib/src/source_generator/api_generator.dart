@@ -6,9 +6,9 @@ import 'package:source_gen/source_gen.dart';
 import 'annotation.dart';
 import 'parser/api_class_parser.dart';
 
-class ApiGenerator extends GeneratorForAnnotation<Api> {
+class ApiGenerator extends GeneratorForAnnotation<RequestIF> {
   /// 產生 api class 的實作類
-  ApiClassParser apiClassParser = ApiClassParser();
+  final ApiClassParser apiClassParser = ApiClassParser();
 
   /// 已經產生過的檔案, 不需要在 import
   final List<String> _importReady = [];
@@ -33,20 +33,20 @@ class ApiGenerator extends GeneratorForAnnotation<Api> {
     // 如果尚未添加過 import, 則需要加入
     if (!_importReady.contains(sourceFullName)) {
       _importReady.add(sourceFullName);
-      finalText = """
+      finalText = '''
       ${getImportText(sourceShortName)}
       
       $finalText
-      """;
+      ''';
     }
 
     return DartFormatter().format(finalText);
   }
 
   String getImportText(String sourceFile) {
-    return """
+    return '''
     part of '$sourceFile';
-    """;
+    ''';
   }
 }
 

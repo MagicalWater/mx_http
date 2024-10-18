@@ -1,6 +1,6 @@
 /// Support for doing something awesome.
 ///
 /// More dartdocs go here.
-library mx_http;
+library;
 
 export 'src/http.dart';

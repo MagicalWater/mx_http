@@ -24,12 +24,12 @@ class CodeGenerator {
 
     if (_codeLibrary != null) {
       final emitter = DartEmitter();
-      final classString = "${_codeLibrary!.accept(emitter)}";
+      final classString = '${_codeLibrary!.accept(emitter)}';
       // print(classString);
       return DartFormatter().format(classString);
     } else if (_codeClass != null) {
       final emitter = DartEmitter();
-      final classString = "${_codeClass!.accept(emitter)}";
+      final classString = '${_codeClass!.accept(emitter)}';
       // print(classString);
       return DartFormatter().format(classString);
     }

@@ -1,146 +1,53 @@
-import 'package:dio/dio.dart';
-
 /// 宣告一個 abstract class 是個 api 請求的 interface
-class Api {
-  const Api();
+class RequestIF {
+  const RequestIF();
 }
 
-/// 各個 method 的 path 皆可帶入變數
-/// 示例
-/// @Get('path1/path2/{變數名稱}')
-/// HttpContent(@Path('變數名稱') String pathVar)
-
-/// 宣告 method 為 get 方法
-/// path 可帶入變數, 宣告方式為
-class Get {
-  final String path;
-  final Map<String, String>? headers;
-  final Map<String, String>? queryParams;
-  final HttpContentType? contentType;
-  final String? host;
+/// 靜態的請求內容
+class StaticRequest {
+  final String? path;
   final String? scheme;
-  final int? port;
-
-  const Get(
-    this.path, {
-    this.headers,
-    this.queryParams,
-    this.host,
-    this.scheme,
-    this.contentType,
-    this.port,
-  });
-}
-
-/// 宣告 method 為 post 方法
-class Post {
-  final String path;
-  final Map<String, String>? headers;
-  final Map<String, String>? queryParams;
-  final dynamic body;
-  final HttpBodyType? bodyType;
-  final ListFormat? formDataFormat;
-  final HttpContentType? contentType;
   final String? host;
-  final String? scheme;
   final int? port;
+  final Object? body;
+  final Map<String, dynamic>? headers;
+  final Map<String, dynamic>? queryParameters;
 
-  const Post(
-    this.path, {
-    this.headers,
-    this.queryParams,
+  /// 請求method
+  /// 可透過[RequestMethods]賦予
+  /// class RequestMethods:
+  ///   static const get = 'GET';
+  ///   static const post = 'POST';
+  ///   static const put = 'PUT';
+  ///   static const delete = 'DELETE';
+  ///   static const patch = 'PATCH';
+  ///   static const head = 'HEAD';
+  ///   static const options = 'OPTIONS';
+  final String? method;
+
+  /// 可透過[Headers]賦予
+  /// class Headers: (in dio)
+  ///   static const jsonContentType = 'application/json';
+  ///   static const formUrlEncodedContentType = 'application/x-www-form-urlencoded';
+  ///   static const textPlainContentType = 'text/plain';
+  ///   static const multipartFormDataContentType = 'multipart/form-data';
+  final String? contentType;
+
+  const StaticRequest({
+    this.path,
     this.body,
-    this.bodyType,
-    this.formDataFormat,
-    this.host,
     this.scheme,
-    this.contentType,
+    this.host,
     this.port,
-  });
-}
-
-/// 宣告 method 為 delete 方法
-class Delete {
-  final String path;
-  final Map<String, String>? headers;
-  final Map<String, String>? queryParams;
-  final dynamic body;
-  final HttpBodyType? bodyType;
-  final ListFormat? formDataFormat;
-  final HttpContentType? contentType;
-  final String? host;
-  final String? scheme;
-  final int? port;
-
-  const Delete(
-    this.path, {
+    this.method,
+    this.contentType,
     this.headers,
-    this.queryParams,
-    this.body,
-    this.bodyType,
-    this.formDataFormat,
-    this.host,
-    this.scheme,
-    this.contentType,
-    this.port,
-  });
-}
-
-/// 宣告 method 為 put 方法
-class Put {
-  final String path;
-  final Map<String, String>? headers;
-  final Map<String, String>? queryParams;
-  final dynamic body;
-  final HttpBodyType? bodyType;
-  final ListFormat? formDataFormat;
-  final HttpContentType? contentType;
-  final String? host;
-  final String? scheme;
-  final int? port;
-
-  const Put(
-    this.path, {
-    this.headers,
-    this.queryParams,
-    this.body,
-    this.bodyType,
-    this.formDataFormat,
-    this.host,
-    this.scheme,
-    this.contentType,
-    this.port,
-  });
-}
-
-/// 宣告 method 為 download 方法
-class Download {
-  final String path;
-  final Map<String, String>? headers;
-  final Map<String, String>? queryParams;
-  final dynamic body;
-  final HttpBodyType? bodyType;
-  final ListFormat? formDataFormat;
-  final HttpContentType? contentType;
-  final String? host;
-  final String? scheme;
-  final int? port;
-
-  const Download(
-    this.path, {
-    this.headers,
-    this.queryParams,
-    this.body,
-    this.bodyType,
-    this.formDataFormat,
-    this.host,
-    this.scheme,
-    this.contentType,
-    this.port,
+    this.queryParameters,
   });
 }
 
 /// 宣告 method 裡面的參數為 path 裡面的變數
+/// path的變數不可為可空
 class Path {
   final String name;
 
@@ -148,49 +55,32 @@ class Path {
 }
 
 /// 宣告 method 裡面的參數為 header
+/// 若 ignoreNull 為 true, 則當參數為 null 時, 不會帶入 header
 class Header {
   final String name;
+  final bool ignoreNull;
 
-  const Header(this.name);
+  const Header(this.name, {this.ignoreNull = true});
 }
 
 /// 宣告 method 裡面的參數為 queryParam
-class Param {
+/// 若 ignoreNull 為 true, 則當參數為 null 時, 不會帶入 queryParam
+class Query {
   final String name;
+  final bool ignoreNull;
 
-  const Param(this.name);
+  const Query(this.name, {this.ignoreNull = true});
 }
 
 /// 宣告 method 裡面的參數為 body
+/// 若 ignoreNull 為 true, 則當參數為 null 時, 不會帶入 body
+/// 若沒有指定 name, 則代表設置的是rawBody
 class Body {
   final String? name;
+  final bool ignoreNull;
 
-  const Body([this.name]);
-}
-
-class HttpContentType {
-  final String _value;
-
-  const HttpContentType(this._value);
-
-  String get value => _value;
-
-  static const json = HttpContentType(HttpContentType._json);
-  static const text = HttpContentType(HttpContentType._text);
-  static const binary = HttpContentType(HttpContentType._binary);
-  static const html = HttpContentType(HttpContentType._html);
-  static const formUrlencoded =
-      HttpContentType(HttpContentType._formUrlencoded);
-
-  static const String _json = "application/json";
-  static const String _text = "text/plain";
-  static const String _binary = "application/octet-stream";
-  static const String _html = "text/html";
-  static const String _formUrlencoded = "application/x-www-form-urlencoded";
-}
-
-enum HttpBodyType {
-  formData,
-  formUrlencoded,
-  raw,
+  const Body(
+    this.name, {
+    this.ignoreNull = true,
+  });
 }

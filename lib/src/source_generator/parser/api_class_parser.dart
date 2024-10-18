@@ -1,29 +1,29 @@
+import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:built_collection/built_collection.dart';
 import 'package:code_builder/code_builder.dart' as code_builder;
-import 'package:dio/dio.dart';
 
-import '../annotation.dart';
 import '../element_parser.dart';
-import 'api_method_content/http_content_builder.dart';
+import 'builder/body_builder.dart';
+import 'builder/header_builder.dart';
+import 'builder/query_builder.dart';
+import 'builder/request_content_builder.dart';
 import 'parser.dart';
 
 /// 產出 api 類
-class ApiClassParser extends ApiParser {
+class ApiClassParser extends RequestParser {
   @override
-  String getClassSuffixName() {
-    return "Api";
-  }
+  String getClassSuffixName() => 'Api';
 
   /// 產出實作的 api methods
   @override
-  List<code_builder.Method> generateApiMethods(ClassElement element) {
+  List<code_builder.Method> generateMethods(ClassElement element) {
     // 取得 ClassElement 底下的所有 method, 開始進行分析以及建立 Method
     return element.methods.map((e) => _generateMethod(e)).toList();
   }
 
   @override
-  code_builder.Class generateApiClass({
+  code_builder.Class generateClass({
     required String interfaceName,
     required String className,
     required List<code_builder.Method> methods,
@@ -33,23 +33,28 @@ class ApiClassParser extends ApiParser {
         ..abstract = true
         ..name = className
         ..methods.addAll(methods)
-        ..extend = code_builder.refer(
-            "RequestBuilderBase", 'package:mx_core/mx_core.dart')
-        ..implements = ListBuilder([
-          code_builder.refer(interfaceName, 'package:mx_core/mx_core.dart')
-        ]);
+        ..constructors.add(code_builder.Constructor((b) {
+          // ExRequestApi(super.base);
+          b.requiredParameters.add(code_builder.Parameter((p) {
+            p
+              ..toSuper = true
+              ..name = 'base';
+          }));
+        }))
+        ..extend = code_builder.refer('RequestBase')
+        ..implements = ListBuilder([code_builder.refer(interfaceName)]);
     });
   }
 
   code_builder.Method _generateMethod(MethodElement element) {
     // method 內容的構建器
-    HttpContentBuilder contentBuilder = HttpContentBuilder();
+    final contentBuilder = RequestContentBuilder();
 
     // 取得 method 的名稱
     final methodName = element.name;
 
     // 首先取得 meta data
-    final methodAnnotation = getApiMethodAnnotation(element);
+    final methodAnnotation = getMethodReader(element);
 
     // 取得 method 裡面必選的參數(擁有名稱的必選參數不在此處)
     final requiredParam =
@@ -62,16 +67,17 @@ class ApiClassParser extends ApiParser {
 
     // 取得以及設置初始化參數
     // 取得 meta data 使用的類型
-    final method = toApiMethod(methodAnnotation);
-    var path = methodAnnotation.peek('path')!.stringValue;
+    var path = methodAnnotation.peek('path')?.stringValue;
     final scheme = methodAnnotation.peek('scheme')?.stringValue;
     final host = methodAnnotation.peek('host')?.stringValue;
     final port = methodAnnotation.peek('port')?.intValue;
-    final contentType = methodAnnotation
-        .peek('contentType')
-        ?.objectValue
-        .getField('_value')
-        ?.toStringValue();
+    final method = methodAnnotation.peek('method')?.stringValue;
+    final contentType = methodAnnotation.peek('contentType')?.stringValue;
+    final headers =
+        methodAnnotation.peek('headers')?.mapValue.mapStringNullable();
+    final queryParameters =
+        methodAnnotation.peek('queryParameters')?.mapValue.mapStringNullable();
+    final body = methodAnnotation.peek('body');
 
     contentBuilder.settingInit(
       path: path,
@@ -82,116 +88,48 @@ class ApiClassParser extends ApiParser {
       port: port,
     );
 
-    // 解析取得 bodyType
-    HttpBodyType? bodyType;
-    final bodyTypePeek = methodAnnotation.peek('bodyType');
-    if (bodyTypePeek != null) {
-      final dartObj = bodyTypePeek.objectValue;
-      final name = dartObj.getField('_name')?.toStringValue();
-      final formDataString = HttpBodyType.formData.toString().split('.').last;
-      final formUrlencodedString =
-          HttpBodyType.formUrlencoded.toString().split('.').last;
-      final rawStrng = HttpBodyType.raw.toString().split('.').last;
-      // enum 判斷的方式只能透過 getField.split('.') 進行判斷
-      if (name == formDataString) {
-        // 類型是 formDara
-        bodyType = HttpBodyType.formData;
-      } else if (name == formUrlencodedString) {
-        // 類型是 formUrlencoded
-        bodyType = HttpBodyType.formUrlencoded;
-      } else if (name == rawStrng) {
-        // 類型為 raw
-        bodyType = HttpBodyType.raw;
-      }
-
-      // 實際上可以設置的為enum
-      // 因此在經過上方的if else判斷後, bodyType 必定有值
-
-      // 將 bodyType 設置到 builder
-      contentBuilder.setBodyType(bodyType);
-    }
-
-    // 解析取得ListFormat
-    ListFormat? formDataFormat;
-    final formDataFormatPeek = methodAnnotation.peek('formDataFormat');
-    if (formDataFormatPeek != null) {
-      final dartObj = formDataFormatPeek.objectValue;
-      final name = dartObj.getField('_name')?.toStringValue();
-      final csvString = ListFormat.csv.toString().split('.').last;
-      final ssvString =
-          ListFormat.ssv.toString().split('.').last;
-      final tsvString = ListFormat.tsv.toString().split('.').last;
-      final pipesString = ListFormat.pipes.toString().split('.').last;
-      final multiString = ListFormat.multi.toString().split('.').last;
-      final multiCompatibleString = ListFormat.multiCompatible.toString().split('.').last;
-      // enum 判斷的方式只能透過 getField.split('.') 進行判斷
-      if (name == csvString) {
-        formDataFormat = ListFormat.csv;
-      } else if (name == ssvString) {
-        formDataFormat = ListFormat.ssv;
-      } else if (name == tsvString) {
-        formDataFormat = ListFormat.tsv;
-      } else if (name == pipesString) {
-        formDataFormat = ListFormat.pipes;
-      } else if (name == multiString) {
-        formDataFormat = ListFormat.multi;
-      } else if (name == multiCompatibleString) {
-        formDataFormat = ListFormat.multiCompatible;
-      }
-
-      // 實際上可以設置的為enum
-      // 因此在經過上方的if else判斷後, formDataFormat 必定有值
-
-      // 將 formDataFormat 設置到 builder
-      contentBuilder.setFormDataFormat(formDataFormat);
-    }
-
-    // 常數 header
-    final constantHeader = <String, String>{};
-    // 常數 queryParam
-    final constantQueryParam = <String, String>{};
-    // 常數 body
-    dynamic constantBody;
-
-    // 解析常數參數 (header/body/queryparam)
-    (methodAnnotation.peek('headers')?.mapValue ?? {}).forEach((k, v) {
-      var keyString = k?.toStringValue();
-      var valueString = v?.toStringValue();
-      if (keyString != null && valueString != null) {
-        constantHeader[keyString] = valueString;
-      }
-    });
-    (methodAnnotation.peek('queryParams')?.mapValue ?? {}).forEach((k, v) {
-      final keyString = k?.toStringValue();
-      final valueString = v?.toStringValue();
-      if (keyString != null && valueString != null) {
-        constantQueryParam[keyString] = valueString;
-      }
+    // 解析常數參數 (header/body/query)
+    headers?.forEach((k, v) {
+      final content = HeaderContent.value(
+        key: k,
+        value: v,
+        nullable: v == null,
+        ignoreNull: false,
+      );
+      contentBuilder.addHeader(content);
     });
 
-    var bodyPeek = methodAnnotation.peek('body');
-    if (bodyPeek?.isString == true) {
-      constantBody = bodyPeek!.stringValue;
-    } else if (bodyPeek?.isMap == true) {
-      constantBody = <String, String>{};
-      (bodyPeek!.mapValue).forEach((k, v) {
-        var keyString = k?.toStringValue();
-        var valueString = v?.toStringValue();
-        if (keyString != null && valueString != null) {
-          constantBody[keyString] = valueString;
-        }
+    queryParameters?.forEach((k, v) {
+      final content = QueryContent.value(
+        key: k,
+        value: v,
+        nullable: v == null,
+        ignoreNull: false,
+      );
+      contentBuilder.addQuery(content);
+    });
+
+    if (body?.isString == true) {
+      print('body is string');
+      final content = BodyContent.value(
+        key: null,
+        value: body!.stringValue,
+        nullable: false,
+        ignoreNull: false,
+      );
+      contentBuilder.addBody(content);
+    } else if (body?.isMap == true) {
+      print('body is map');
+      body!.mapValue.mapStringNullable().forEach((k, v) {
+        final content = BodyContent.value(
+          key: k,
+          value: v,
+          nullable: v == null,
+          ignoreNull: false,
+        );
+        contentBuilder.addBody(content);
       });
     }
-
-    // 添加常數參數
-    _addConstantQueryParam(
-        builder: contentBuilder, queryParams: constantQueryParam);
-
-    // 添加常數header
-    _addConstantHeader(builder: contentBuilder, headers: constantHeader);
-
-    // 添加常數body
-    _addConstantBody(builder: contentBuilder, body: constantBody);
 
     // 添加必選/可選參數到 content Builder
     path = _addParamToContentBuilder(
@@ -200,6 +138,7 @@ class ApiClassParser extends ApiParser {
       params: requiredParam,
       isRequiredRange: true,
     );
+
     path = _addParamToContentBuilder(
       builder: contentBuilder,
       urlPath: path,
@@ -218,8 +157,7 @@ class ApiClassParser extends ApiParser {
         ..optionalParameters
             .addAll(_convertToCodeBuilderParam(optionalParam, true))
         ..body = code_builder.Code(contentBuilder.build())
-        ..returns =
-            code_builder.refer('HttpContent', 'package:mx_core/mx_core.dart');
+        ..returns = code_builder.refer('RequestContent');
     });
   }
 
@@ -244,8 +182,7 @@ class ApiClassParser extends ApiParser {
         // print('取得類型名稱: ${e.type.getDisplayString(withNullability: true)}');
         p
           ..annotations.addAll(paramAnnotationCode)
-          ..type =
-              code_builder.refer(e.type.getDisplayString(withNullability: true))
+          ..type = code_builder.refer(e.type.getDisplayString())
           ..name = e.name
           ..named = e.isNamed
           ..required = isOptional ? e.isRequired : false
@@ -256,119 +193,92 @@ class ApiClassParser extends ApiParser {
     }).toList();
   }
 
-  /// 添加常數參數到 [v]
-  void _addConstantQueryParam(
-      {required HttpContentBuilder builder, Map<String, String>? queryParams}) {
-    if (queryParams == null || queryParams.isEmpty) return;
-    queryParams.forEach((k, v) {
-      builder.addQueryParam(
-        key: k,
-        constantValue: v,
-        fieldType: ApiFieldType.nonNull,
-      );
-    });
-  }
-
-  /// 添加常數header到 [builder]
-  void _addConstantHeader(
-      {required HttpContentBuilder builder, Map<String, String>? headers}) {
-    if (headers == null || headers.isEmpty) return;
-    headers.forEach((k, v) {
-      builder.addHeader(
-        key: k,
-        constantValue: v,
-        fieldType: ApiFieldType.nonNull,
-      );
-    });
-  }
-
-  /// 添加常數body到 [builder]
-  void _addConstantBody({required HttpContentBuilder builder, dynamic body}) {
-    if (body == null) return;
-    if (body is Map<String, String>) {
-      body.forEach((k, v) {
-        builder.addBody(
-          key: k,
-          constantValue: v,
-          fieldType: ApiFieldType.nonNull,
-        );
-      });
-    } else if (body is String) {
-      // 是 raw string
-      builder.addBody(constantValue: body, fieldType: ApiFieldType.nonNull);
-    }
-  }
-
-  /// 添加參數設定到 [HttpContentBuilder]
+  /// 添加方法的參數設定到 [RequestContentBuilder]
   /// [isRequiredRange] - 是否為必填區塊的參數
   /// 回傳新的urlPath (無論是否有變更都回傳)
-  String _addParamToContentBuilder({
-    required HttpContentBuilder builder,
-    required String urlPath,
+  String? _addParamToContentBuilder({
+    required RequestContentBuilder builder,
+    required String? urlPath,
     required List<ParameterElement> params,
     required bool isRequiredRange,
   }) {
-    String currentPath = urlPath;
+    String? currentPath = urlPath;
 
     // 遍歷所有的參數, 依據參數的類型, 加入到對應的 Builder
-    for (var e in params) {
+    for (final e in params) {
       // 取得參數的 meta data
-      var paramAnnotation = getParamAnnotation(e);
+      final paramReader = getParamReader(e);
 
       // 就可以從 meta data 取得參數的類型
-      var paramType = toApiParam(paramAnnotation);
+      final paramType = getParamType(paramReader);
 
       // 變數名稱
-      var fieldName = e.name;
+      final fieldName = e.name;
 
       // 變數類型
-      var fieldType = getFieldType(e);
+      final fieldNullable = isFieldNullable(e);
+
+      // key name
+      final key = paramReader.peek('name')?.stringValue;
+      final ignoreNull = paramReader.peek('ignoreNull')?.boolValue;
 
       switch (paramType) {
-        case ApiParamType.queryParam:
-          var key = paramAnnotation.peek('name')!.stringValue;
-          builder.addQueryParam(
-            required: isRequiredRange,
-            key: key,
+        case ParamType.query:
+          final content = QueryContent.field(
+            key: key!,
             fieldName: fieldName,
-            fieldType: fieldType,
+            nullable: fieldNullable,
+            ignoreNull: ignoreNull!,
           );
+          builder.addQuery(content);
           break;
-        case ApiParamType.header:
-          var key = paramAnnotation.peek('name')!.stringValue;
-          builder.addHeader(
-            required: isRequiredRange,
-            key: key,
+        case ParamType.header:
+          final content = HeaderContent.field(
+            key: key!,
             fieldName: fieldName,
-            fieldType: fieldType,
+            nullable: fieldNullable,
+            ignoreNull: ignoreNull!,
           );
+          builder.addHeader(content);
           break;
-        case ApiParamType.path:
+        case ParamType.path:
           // 將路徑裡面的 {variable} 做替換
-          if (fieldType == ApiFieldType.nonNull) {
-            var key = paramAnnotation.peek('name')!.stringValue;
-            currentPath = currentPath.replaceAll("{$key}", "\$$fieldName");
-            builder.settingInit(path: currentPath);
-          } else {
-            var key = paramAnnotation.peek('name')!.stringValue;
-            currentPath = currentPath.replaceAll("{$key}", "\${$fieldName ?? ''}");
-            builder.settingInit(path: currentPath);
-          }
+          currentPath = currentPath?.replaceAll('{$key}', '\$$fieldName');
+          builder.settingInit(path: currentPath);
           break;
-        case ApiParamType.body:
-          // 取得 key
-          var key = paramAnnotation.peek('name')?.stringValue;
+        case ParamType.body:
           // 添加到body
-          builder.addBody(
-            required: isRequiredRange,
+          final content = BodyContent.field(
             key: key,
             fieldName: fieldName,
-            fieldType: fieldType,
+            nullable: fieldNullable,
+            ignoreNull: ignoreNull!,
           );
+          builder.addBody(content);
           break;
       }
     }
 
     return currentPath;
+  }
+}
+
+extension DartStringMap on Map<DartObject?, DartObject?> {
+  /// 從 [DartObject] 轉換為 <String?, String?>
+  Map<String?, String?> mapString() => map((k, v) {
+        final keyString = k?.toStringValue();
+        final valueString = v?.toStringValue();
+        return MapEntry(keyString, valueString);
+      });
+
+  /// 從 [DartObject] 轉換為 <String?, String?>, 並且過濾掉 key為null
+  Map<String, String?> mapStringNullable() => mapString().whereType();
+}
+
+extension NonNullMap on Map<dynamic, dynamic> {
+  Map<T, S> whereType<T, S>() {
+    final newMap = Map.from(this);
+    newMap.removeWhere((key, value) => key is! T || value is! S);
+    return newMap.map((key, value) => MapEntry(key as T, value as S));
   }
 }

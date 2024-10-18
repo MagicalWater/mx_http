@@ -3,80 +3,52 @@ import 'package:source_gen/source_gen.dart';
 
 import 'annotation.dart';
 
-/// api 的 method 類型列表
-final methodList = [Get, Post, Put, Delete, Download];
+/// 定義為request的method
+final methodList = [StaticRequest];
 
 /// api 的參數類型列表
-final paramList = [Param, Header, Path, Body];
-
-/// api 的 method 類型
-enum ApiMethodType { get, post, delete, put, download }
+final paramList = [Query, Header, Path, Body];
 
 /// Api 的參數類型
-enum ApiParamType { queryParam, header, path, body }
-
-/// Api 變數的類型
-enum ApiFieldType { nonNull, nullable }
-
-/// 傳入 Method 的 ConstantReader (annotation)
-/// 從將 meta 取得 Api 的 Method
-ApiMethodType toApiMethod(ConstantReader annotation) {
-  if (annotation.instanceOf(const TypeChecker.fromRuntime(Get))) {
-    return ApiMethodType.get;
-  } else if (annotation.instanceOf(const TypeChecker.fromRuntime(Post))) {
-    return ApiMethodType.post;
-  } else if (annotation.instanceOf(const TypeChecker.fromRuntime(Delete))) {
-    return ApiMethodType.delete;
-  } else if (annotation.instanceOf(const TypeChecker.fromRuntime(Put))) {
-    return ApiMethodType.put;
-  } else if (annotation.instanceOf(const TypeChecker.fromRuntime(Download))) {
-    return ApiMethodType.download;
-  }
-  throw '未知的 method: $annotation';
-}
+enum ParamType { query, header, path, body }
 
 /// 傳入 Param 的 ConstantReader (annotation)
 /// 從 meta 取得 Api 的參數類型分類
-ApiParamType toApiParam(ConstantReader annotation) {
-  if (annotation.instanceOf(const TypeChecker.fromRuntime(Param))) {
-    return ApiParamType.queryParam;
+ParamType getParamType(ConstantReader annotation) {
+  if (annotation.instanceOf(const TypeChecker.fromRuntime(Query))) {
+    return ParamType.query;
   } else if (annotation.instanceOf(const TypeChecker.fromRuntime(Header))) {
-    return ApiParamType.header;
+    return ParamType.header;
   } else if (annotation.instanceOf(const TypeChecker.fromRuntime(Path))) {
-    return ApiParamType.path;
+    return ParamType.path;
   } else if (annotation.instanceOf(const TypeChecker.fromRuntime(Body))) {
-    return ApiParamType.body;
+    return ParamType.body;
   }
   throw '未知的 param: $annotation';
 }
 
 /// 傳入 [ParamElement]
-/// 返回這個參數的 field type, 預設是 string
-ApiFieldType getFieldType(ParameterElement element) {
-  var name = element.type.getDisplayString(withNullability: true);
+/// 傳回此參數是否為可空
+bool isFieldNullable(ParameterElement element) {
+  final name = element.type.getDisplayString();
   // print('獲取: $name, ${element.type.nullabilitySuffix}');
 //  print("打印類型名稱 ${element.type.runtimeType}, ${element.type}, $name");
-  if (name[name.length-1] == '?') {
-    return ApiFieldType.nullable;
-  } else {
-    return ApiFieldType.nonNull;
-  }
+  return name[name.length - 1] == '?';
 }
 
-/// 傳入 [MethodElement], 取得 Method 的 meta data
-/// 這邊取得的 annotation 只搜索 [methodList] 內的類型
-ConstantReader getApiMethodAnnotation(MethodElement element) {
-  return getAnnotation(element, methodList);
+/// 從method中取得對應的meta data
+ConstantReader getMethodReader(MethodElement element) {
+  return findConstantReader(element, methodList);
 }
 
-/// 傳入 [ParameterElement], 取得 Method 的 meta data
-ConstantReader getParamAnnotation(ParameterElement element) {
-  return getAnnotation(element, paramList);
+/// 從method的參數中取得對應的meta data
+ConstantReader getParamReader(ParameterElement element) {
+  return findConstantReader(element, paramList);
 }
 
 /// 傳入 element 以及 尋找的類型列表
 /// 返回 對應的 meta data
-ConstantReader getAnnotation(Element element, List<Type> findList) {
+ConstantReader findConstantReader(Element element, List<Type> findList) {
   for (final type in findList) {
     // 初始化 TypeChecker, 將要搜索的 annotation 類型包進去
     final checker = TypeChecker.fromRuntime(type);
