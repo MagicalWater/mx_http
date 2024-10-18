@@ -1,5 +1,4 @@
-import 'package:dio/dio.dart';
-import 'package:mx_http/src/dio_extension.dart';
+import 'package:mx_request/mx_request.dart';
 
 import 'request.dart';
 

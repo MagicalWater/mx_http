@@ -1,5 +1,5 @@
 import 'package:dio/dio.dart';
-import 'package:mx_http/src/dio_extension.dart';
+import 'package:mx_request/src/dio_extension.dart';
 
 /// 紀錄request的發送時間與結束時間
 class TimeInterceptor extends Interceptor {

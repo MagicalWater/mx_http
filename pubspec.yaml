@@ -1,26 +1,22 @@
-name: mx_http
-description: http connection tool, and supporting automatic generation of request entity code.
+name: mx_request
+description: 可自動化生成request請求內容的工具, 核心為使用dio進行發送自動生成的request請求.
 version: 1.0.0
-homepage: https://github.com/MagicalWater/mx_http
+homepage: https://github.com/MagicalWater/mx_request
 
 environment:
   sdk: ^3.5.3
-  flutter: '>=3.24.3'
 
 dependencies:
-  path: ^1.9.0
-  source_gen: ^1.5.0
   dio: ^5.7.0
-  dio_cookie_manager: ^3.1.1
-  cookie_jar: ^4.0.8
+  source_gen: ^1.5.0
+  meta: ^1.16.0
   analyzer: ^6.5.2
-  build: ^2.4.1
   dart_style: ^2.3.7
   code_builder: ^4.10.0
-  build_runner: ^2.4.13
   built_collection: ^5.1.1
-  meta: ^1.16.0
-  dio_smart_retry: ^6.0.0
+  build: ^2.4.1
 dev_dependencies:
   lints: ^5.0.0
   test: ^1.25.8
+  build_runner: ^2.4.13
+

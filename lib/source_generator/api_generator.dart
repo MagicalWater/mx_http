@@ -1,9 +1,9 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:build/build.dart';
 import 'package:dart_style/dart_style.dart';
+import 'package:mx_request/src/annotation.dart';
 import 'package:source_gen/source_gen.dart';
 
-import 'annotation.dart';
 import 'parser/api_class_parser.dart';
 
 class ApiGenerator extends GeneratorForAnnotation<RequestIF> {

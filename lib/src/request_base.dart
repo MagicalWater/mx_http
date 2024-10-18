@@ -1,4 +1,4 @@
-import 'package:mx_http/src/request_content/request_content.dart';
+import 'package:mx_request/src/request_content/request_content.dart';
 
 /// api content構建
 abstract class RequestBase {

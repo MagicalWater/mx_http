@@ -27,6 +27,10 @@ class QueryBuilder extends ParamContentBuilder<QueryContent> {
       }
     }
 
+    if (text.isEmpty) {
+      return '';
+    }
+
     return '''
     $start
     $text

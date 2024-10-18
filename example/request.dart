@@ -1,4 +1,4 @@
-import 'package:mx_http/mx_http.dart';
+import 'package:mx_request/mx_request.dart';
 
 part 'request.api.dart';
 

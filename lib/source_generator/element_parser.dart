@@ -1,7 +1,7 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:source_gen/source_gen.dart';
 
-import 'annotation.dart';
+import '../src/annotation.dart';
 
 /// 定義為request的method
 final methodList = [StaticRequest];

@@ -1,6 +1,6 @@
 builders:
   apiBuilder:
-    import: "package:mx_http/src/source_generator/api_generator.dart"
+    import: "package:mx_request/source_generator/api_generator.dart"
     builder_factories: ["apiBuilder"]
     build_extensions: {".dart": [".api.dart"]}
     auto_apply: root_package

@@ -27,6 +27,10 @@ class HeaderBuilder extends ParamContentBuilder<HeaderContent> {
       }
     }
 
+    if (text.isEmpty) {
+      return '';
+    }
+
     return '''
     $start
     $text
