@@ -17,62 +17,14 @@ extension RequestContentEx on RequestContent {
     ProgressCallback? onReceiveProgress,
     FormDataBuilder formDataBuilder = _defaultFormDataBuilder,
   }) {
-    final contentOptions = Options(
-      headers: headers,
-      contentType: contentType,
-      method: method,
-    );
-
-    if (options != null) {
-      // 將以options為主
-      // 除了headers將會用合併的之外
-      // contentType, method將會以options為主, 若無值才默認使用content的
-      if (options.headers != null) {
-        options.headers!.addAll(contentOptions.headers ?? {});
-      } else {
-        options.headers = contentOptions.headers;
-      }
-      options.contentType = options.contentType ?? contentOptions.contentType;
-      options.method = options.method ?? contentOptions.method;
-    }
-
-    final usedOptions = options ?? contentOptions;
-
-    Object? usedBody;
-
-    if (body == null) {
-      // 若body為null, 則使用content的body
-      // 將透過判斷contentType, 將body轉為對應的形式
-      final contentType = usedOptions.contentType;
-      switch (contentType) {
-        case Headers.jsonContentType:
-          usedBody = bodyInRow;
-          break;
-        case Headers.formUrlEncodedContentType:
-          usedBody = bodyInKeyValue;
-          break;
-        case Headers.textPlainContentType:
-          usedBody = bodyInRow;
-          break;
-        case Headers.multipartFormDataContentType:
-          usedBody = formDataBuilder(this, usedOptions);
-          break;
-        default:
-          // 其餘未知的contentType, 不進行轉換
-          usedBody = body;
-          break;
-      }
-    } else {
-      usedBody = body;
-    }
-
-    return dio.requestUri(
-      uri,
-      data: usedBody,
+    return dio.mxRequest<T>(
+      this,
+      body: body,
       cancelToken: cancelToken,
-      options: usedOptions,
+      options: options,
       onSendProgress: onSendProgress,
       onReceiveProgress: onReceiveProgress,
+      formDataBuilder: formDataBuilder,
     );
   }
 
@@ -96,64 +48,16 @@ extension RequestContentEx on RequestContent {
     FormDataBuilder formDataBuilder = _defaultFormDataBuilder,
     Object? body,
   }) {
-    final contentOptions = Options(
-      headers: headers,
-      contentType: contentType,
-      method: method,
-    );
-
-    if (options != null) {
-      // 將以options為主
-      // 除了headers將會用合併的之外
-      // contentType, method將會以options為主, 若無值才默認使用content的
-      if (options.headers != null) {
-        options.headers!.addAll(contentOptions.headers ?? {});
-      } else {
-        options.headers = contentOptions.headers;
-      }
-      options.contentType = options.contentType ?? contentOptions.contentType;
-      options.method = options.method ?? contentOptions.method;
-    }
-
-    final usedOptions = options ?? contentOptions;
-
-    Object? usedBody;
-
-    if (body == null) {
-      // 若body為null, 則使用content的body
-      // 將透過判斷contentType, 將body轉為對應的形式
-      final contentType = usedOptions.contentType;
-      switch (contentType) {
-        case Headers.jsonContentType:
-          usedBody = bodyInRow;
-          break;
-        case Headers.formUrlEncodedContentType:
-          usedBody = bodyInKeyValue;
-          break;
-        case Headers.textPlainContentType:
-          usedBody = bodyInRow;
-          break;
-        case Headers.multipartFormDataContentType:
-          usedBody = formDataBuilder(this, usedOptions);
-          break;
-        default:
-          // 其餘未知的contentType, 不進行轉換
-          usedBody = body;
-          break;
-      }
-    } else {
-      usedBody = body;
-    }
-
-    return dio.downloadUri(
-      uri,
-      savePath,
-      onReceiveProgress: onReceiveProgress,
+    return dio.mxDownload<T>(
+      this,
+      savePath: savePath,
       cancelToken: cancelToken,
       deleteOnError: deleteOnError,
+      options: options,
       lengthHeader: lengthHeader,
-      data: usedBody,
-      options: usedOptions,
+      onReceiveProgress: onReceiveProgress,
+      formDataBuilder: formDataBuilder,
+      body: body,
     );
   }
 }

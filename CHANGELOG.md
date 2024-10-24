@@ -1,3 +1,7 @@
+## 1.0.3
+- 抽離自動生成request內容相關的程式碼到[mx_request_generator](https://pub.dev/packages/mx_request_generator)套件
+- 修正當沒有指定contentType時, 會導致body沒有生效的問題
+
 ## 1.0.2
 - 調整dio extension加入mxDownload, 表明使用下載的方式進行請求
 - 調整dio extension原本的connect方法名稱, 變更為mxRequest
