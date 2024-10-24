@@ -1,6 +1,6 @@
 name: mx_request
 description: 可自動化生成request請求內容的工具, 核心為使用dio進行發送自動生成的request請求.
-version: 1.0.0
+version: 1.0.2
 homepage: https://github.com/MagicalWater/mx_request
 
 environment:
@@ -9,7 +9,7 @@ environment:
 dependencies:
   dio: ^5.7.0
   source_gen: ^1.5.0
-  meta: ^1.16.0
+  meta: ^1.15.0
   analyzer: ^6.5.2
   dart_style: ^2.3.7
   code_builder: ^4.10.0

@@ -1,4 +1,5 @@
 import 'package:mx_request/mx_request.dart';
+import 'package:dio/dio.dart';
 
 part 'request.api.dart';
 

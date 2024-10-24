@@ -1,4 +1,5 @@
 import 'package:mx_request/mx_request.dart';
+import 'package:dio/dio.dart';
 
 import 'request.dart';
 
@@ -13,7 +14,7 @@ Future<void> main() async {
 
   // 發出http api請求, 並取得響應
   await dio
-      .connect(request.exApi(
+      .mxRequest(request.exApi(
     'apiPath',
     'hi',
     'bToken',
