@@ -2,15 +2,17 @@ part of 'extension.dart';
 
 extension RequestContentEx on RequestContent {
   /// 使用 RequestContent 進行 request 呼叫
-  /// [options] content的options將會與此合併, 重複的則以options為主
   /// [body] Body, 若此參數為null, 將會使用content的body, 透過content-type自動解析取得body應該有的形式
+  /// [queryParameters] Query參數, 若此參數為null, 將會使用content的queryParameters, 若有帶值, 將會合併, 重複地將以queryParameters為主
   /// [cancelToken] 取消請求的token
+  /// [options] content的options將會與此合併, 重複的則以options為主
   /// [onSendProgress] 發送進度
   /// [onReceiveProgress] 接收進度
   /// [formDataBuilder] FormData構建方法, 預設為[_defaultFormDataBuilder], 透過此方法可以自定義FormData的構建方式
   Future<Response<T>> request<T>(
     Dio dio, {
     Object? body,
+    Map<String, dynamic>? queryParameters,
     CancelToken? cancelToken,
     Options? options,
     ProgressCallback? onSendProgress,
@@ -20,6 +22,7 @@ extension RequestContentEx on RequestContent {
     return dio.mxRequest<T>(
       this,
       body: body,
+      queryParameters: queryParameters,
       cancelToken: cancelToken,
       options: options,
       onSendProgress: onSendProgress,
@@ -37,6 +40,7 @@ extension RequestContentEx on RequestContent {
   /// [onReceiveProgress] 接收進度
   /// [formDataBuilder] FormData構建方法, 預設為[_defaultFormDataBuilder], 透過此方法可以自定義FormData的構建方式
   /// [body] Body, 若此參數為null, 將會使用content的body, 透過content-type自動解析取得body應該有的形式
+  /// [queryParameters] Query參數, 若此參數為null, 將會使用content的queryParameters, 若有帶值, 將會合併, 重複地將以queryParameters為主
   Future<Response> mxDownload<T>(
     Dio dio, {
     required dynamic savePath,
@@ -47,6 +51,7 @@ extension RequestContentEx on RequestContent {
     ProgressCallback? onReceiveProgress,
     FormDataBuilder formDataBuilder = _defaultFormDataBuilder,
     Object? body,
+    Map<String, dynamic>? queryParameters,
   }) {
     return dio.mxDownload<T>(
       this,
@@ -58,6 +63,7 @@ extension RequestContentEx on RequestContent {
       onReceiveProgress: onReceiveProgress,
       formDataBuilder: formDataBuilder,
       body: body,
+      queryParameters: queryParameters,
     );
   }
 }

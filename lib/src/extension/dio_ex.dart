@@ -2,21 +2,23 @@ part of 'extension.dart';
 
 extension DioEx on Dio {
   /// 使用 RequestContent 進行 request 呼叫
-  /// [options] content的options將會與此合併, 重複的則以options為主
   /// [body] Body, 若此參數為null, 將會使用content的body, 透過content-type自動解析取得body應該有的形式
+  /// [queryParameters] Query參數, 若此參數為null, 將會使用content的queryParameters, 若有帶值, 將會合併, 重複地將以queryParameters為主
   /// [cancelToken] 取消請求的token
+  /// [options] content的options將會與此合併, 重複的則以options為主
   /// [onSendProgress] 發送進度
   /// [onReceiveProgress] 接收進度
   /// [formDataBuilder] FormData構建方法, 預設為[_defaultFormDataBuilder], 透過此方法可以自定義FormData的構建方式
   Future<Response<T>> mxRequest<T>(
-      RequestContent content, {
-        Object? body,
-        CancelToken? cancelToken,
-        Options? options,
-        ProgressCallback? onSendProgress,
-        ProgressCallback? onReceiveProgress,
-        FormDataBuilder formDataBuilder = _defaultFormDataBuilder,
-      }) {
+    RequestContent content, {
+    Object? body,
+    Map<String, dynamic>? queryParameters,
+    CancelToken? cancelToken,
+    Options? options,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+    FormDataBuilder formDataBuilder = _defaultFormDataBuilder,
+  }) {
     final contentOptions = Options(
       headers: content.headers,
       contentType: content.contentType,
@@ -66,9 +68,21 @@ extension DioEx on Dio {
       usedBody = body;
     }
 
-    return requestUri(
-      content.uri,
+    Map<String, dynamic>? usedQuery;
+    if (queryParameters != null && content.queryParameters != null) {
+      // 合併queryParameters, 重複的部分將會以queryParameters為主
+      usedQuery = <String, dynamic>{
+        ...content.queryParameters!,
+        ...queryParameters,
+      };
+    } else {
+      usedQuery = queryParameters ?? content.queryParameters;
+    }
+
+    return request(
+      content.uri.toString(),
       data: usedBody,
+      queryParameters: usedQuery,
       cancelToken: cancelToken,
       options: usedOptions,
       onSendProgress: onSendProgress,
@@ -85,17 +99,19 @@ extension DioEx on Dio {
   /// [onReceiveProgress] 接收進度
   /// [formDataBuilder] FormData構建方法, 預設為[_defaultFormDataBuilder], 透過此方法可以自定義FormData的構建方式
   /// [body] Body, 若此參數為null, 將會使用content的body, 透過content-type自動解析取得body應該有的形式
+  /// [queryParameters] Query參數, 若此參數為null, 將會使用content的queryParameters, 若有帶值, 將會合併, 重複地將以queryParameters為主
   Future<Response> mxDownload<T>(
-      RequestContent content, {
-        required dynamic savePath,
-        CancelToken? cancelToken,
-        bool deleteOnError = true,
-        Options? options,
-        String lengthHeader = Headers.contentLengthHeader,
-        ProgressCallback? onReceiveProgress,
-        FormDataBuilder formDataBuilder = _defaultFormDataBuilder,
-        Object? body,
-      }) {
+    RequestContent content, {
+    required dynamic savePath,
+    CancelToken? cancelToken,
+    bool deleteOnError = true,
+    Options? options,
+    String lengthHeader = Headers.contentLengthHeader,
+    ProgressCallback? onReceiveProgress,
+    FormDataBuilder formDataBuilder = _defaultFormDataBuilder,
+    Object? body,
+    Map<String, dynamic>? queryParameters,
+  }) {
     final contentOptions = Options(
       headers: content.headers,
       contentType: content.contentType,
@@ -137,7 +153,7 @@ extension DioEx on Dio {
           usedBody = formDataBuilder(content, usedOptions);
           break;
         default:
-        // 其餘未知的contentType, 不進行轉換
+          // 其餘未知的contentType, 不進行轉換
           usedBody = content.body;
           break;
       }
@@ -145,10 +161,22 @@ extension DioEx on Dio {
       usedBody = body;
     }
 
-    return downloadUri(
-      content.uri,
+    Map<String, dynamic>? usedQuery;
+    if (queryParameters != null && content.queryParameters != null) {
+      // 合併queryParameters, 重複的部分將會以queryParameters為主
+      usedQuery = <String, dynamic>{
+        ...content.queryParameters!,
+        ...queryParameters,
+      };
+    } else {
+      usedQuery = queryParameters ?? content.queryParameters;
+    }
+
+    return download(
+      content.uri.toString(),
       savePath,
       onReceiveProgress: onReceiveProgress,
+      queryParameters: usedQuery,
       cancelToken: cancelToken,
       deleteOnError: deleteOnError,
       lengthHeader: lengthHeader,

@@ -1,3 +1,7 @@
+## 1.0.4
+- 修正當query的value有非字串的資料(例如整數), 就會造成轉化成uri出現錯誤, 因此將query直接丟給dio進行處理, 不再參與構建uri
+- mxRequest與mxDownload新增query參數, 可以直接傳入Map<String, dynamic>的參數, 會自動與RequestContent的query合併
+
 ## 1.0.3
 - 抽離自動生成request內容相關的程式碼到[mx_request_generator](https://pub.dev/packages/mx_request_generator)套件
 - 修正當沒有指定contentType時, 會導致body沒有生效的問題

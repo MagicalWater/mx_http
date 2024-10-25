@@ -14,12 +14,12 @@ class RequestContent
   final String? path;
   final int? port;
 
+  /// 不包含queryParameters的uri
   Uri get uri => Uri(
         scheme: scheme,
         host: host,
         path: path,
         port: port,
-        queryParameters: queryParameters,
       );
 
   /// 請求method

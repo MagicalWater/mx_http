@@ -1,6 +1,6 @@
 name: mx_request
 description: 使用dio進行發送自動生成的request請求, 搭配mx_request_generator使用.
-version: 1.0.3
+version: 1.0.4
 homepage: https://github.com/MagicalWater/mx_request
 
 environment:
