@@ -52,6 +52,8 @@ class RequestContent
   });
 
   /// copy with
+  /// [headers] 及 [queryParameters] 會進行合併
+  /// [body] 若有值, 且類型為Map<String, dynamic>, 並且舊的也為Map<String, dynamic>, 則會進行合併
   RequestContent copyWith({
     String? scheme,
     String? host,
@@ -63,6 +65,35 @@ class RequestContent
     String? method,
     String? contentType,
   }) {
+    final usedHeaders = <String, dynamic>{
+      ...?_headers,
+      ...?headers,
+    };
+    final usedQueryParameters = <String, dynamic>{
+      ...?_queryParameters,
+      ...?queryParameters,
+    };
+
+    final contentBody = _body;
+
+    Object? usedBody;
+    final isDefaultBodyMap = contentBody != null && contentBody is Map<String, dynamic>;
+    final isBodyMap = body != null && body is Map<String, dynamic>;
+
+    if (isBodyMap && isDefaultBodyMap) {
+      // 相同key將不會用addPair的方式加入, 會使用覆蓋
+      usedBody = <String, dynamic>{
+        ...contentBody,
+        ...body,
+      };
+    } else if (isBodyMap) {
+      usedBody = Map<String, dynamic>.from(body);
+    } else if (body == null && isDefaultBodyMap) {
+      usedBody = Map<String, dynamic>.from(contentBody);
+    } else {
+      usedBody = body ?? contentBody;
+    }
+
     return RequestContent(
       scheme: scheme ?? this.scheme,
       host: host ?? this.host,
@@ -71,9 +102,9 @@ class RequestContent
       method: method ?? this.method,
       contentType: contentType ?? this.contentType,
     )
-      .._headers = headers ?? _headers
-      .._queryParameters = queryParameters ?? _queryParameters
-      .._body = body ?? _body;
+      .._headers = usedHeaders
+      .._queryParameters = usedQueryParameters
+      .._body = usedBody;
   }
 }
 

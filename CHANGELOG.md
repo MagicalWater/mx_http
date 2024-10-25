@@ -1,3 +1,7 @@
+## 1.0.5
+- 修正因合併資料導致舊資料重複出現的問題, 調整option與requestContent合併參數的方式
+- 修正body資料設置失效的問題
+
 ## 1.0.4
 - 修正當query的value有非字串的資料(例如整數), 就會造成轉化成uri出現錯誤, 因此將query直接丟給dio進行處理, 不再參與構建uri
 - mxRequest與mxDownload新增query參數, 可以直接傳入Map<String, dynamic>的參數, 會自動與RequestContent的query合併
